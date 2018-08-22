@@ -20,7 +20,8 @@ public class ConnectionExample {
 	static {
 		conf = new SparkConf(true).setAppName("App_name").setMaster("local[2]").set("spark.executor.memory", "1g")
 				.set("spark.cassandra.connection.host", "127.0.0.1,172.17.0.2")
-				.set("spark.cassandra.connection.port", "9042").set("spark.cassandra.auth.username", "cassandra")
+				.set("spark.cassandra.connection.port", "9042")
+				.set("spark.cassandra.auth.username", "cassandra")
 				.set("spark.cassandra.auth.password", "cassandra");
 		
 		//This context must be used by entire application 
