@@ -7,14 +7,23 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import spark.bank.Customer;
+
+import java.io.File;
 
 public class SparkCassandraTest {
 
     SparkConf conf;
 
     SparkSession spark;
+
+    @BeforeClass
+    public static void setupClass() {
+        File winutilsParent = new File("src/main/resources");
+        System.setProperty("hadoop.home.dir", winutilsParent.getAbsolutePath());
+    }
 
     @Before
     public void beforeTest() {
