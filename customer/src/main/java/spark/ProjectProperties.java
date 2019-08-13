@@ -5,7 +5,7 @@ import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 
-public class ProjectPropertie {
+public class ProjectProperties {
 
 	public static final String KEY_SPACE = "space";
 

@@ -1,6 +1,8 @@
 package spark.bank;
 
-public class Customer {
+import java.io.Serializable;
+
+public class Customer implements Serializable {
 	
 	public static final String TABLE_NAME = "cc_customer";
 	

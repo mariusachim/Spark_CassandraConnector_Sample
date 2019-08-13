@@ -10,21 +10,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.SaveMode;
-import org.apache.spark.sql.SparkSession;
 
-import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.UUIDs;
-import com.datastax.spark.connector.DataFrameFunctions;
-import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.SparkContextJavaFunctions;
 
@@ -43,13 +35,13 @@ import spark.bank.TransactionPersistence;
 public class App {
 
 	public static void readFromCSV() {
-		Dataset<Customer> customerRecords = ProjectPropertie.spark.read().csv("customers.csv")
+		Dataset<Customer> customerRecords = ProjectProperties.spark.read().csv("customers.csv")
 				.withColumnRenamed("_c0", "id").withColumnRenamed("_c1", "county").withColumnRenamed("_c2", "name")
 				.as(Encoders.bean(Customer.class));
 		customerRecords.show();
 		CustomerPersistence.save(customerRecords);
 
-		Dataset<Transaction> transactionRecords = ProjectPropertie.spark.read().csv("transactions.csv")
+		Dataset<Transaction> transactionRecords = ProjectProperties.spark.read().csv("transactions.csv")
 				.withColumnRenamed("_c0", "customerid").withColumnRenamed("_c1", "year")
 				.withColumnRenamed("_c2", "month").withColumnRenamed("_c3", "id").withColumnRenamed("_c4", "amount")
 				.withColumnRenamed("_c5", "card").withColumnRenamed("_c6", "status")
@@ -63,8 +55,8 @@ public class App {
 		// Print what date is today!
 		System.out.println("Report Date: " + reportDate);
 
-		SparkContextJavaFunctions functions = CassandraJavaUtil.javaFunctions(ProjectPropertie.context);
-		JavaRDD<Balance> balances = functions.cassandraTable(ProjectPropertie.KEY_SPACE, Transaction.TABLE_NAME)
+		SparkContextJavaFunctions functions = CassandraJavaUtil.javaFunctions(ProjectProperties.context);
+		JavaRDD<Balance> balances = functions.cassandraTable(ProjectProperties.KEY_SPACE, Transaction.TABLE_NAME)
 				.select("customerid", "amount", "card", "status", "id").where("id < minTimeuuid(?)", date)
 				.filter(row -> row.getString("status").equals("COMPLETED"))
 				.keyBy(row -> new Tuple2<>(row.getString("customerid"), row.getString("card")))
@@ -91,12 +83,12 @@ public class App {
 	
 	// how much customer spend in different counties per month
 	public static void aggregationBasedOnCustomer(String county) {			
-		Dataset<Row> customerTable = ProjectPropertie.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
+		Dataset<Row> customerTable = ProjectProperties.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
 			   {
 			   put("keyspace", "space");
 			   put("table", "cc_customer");
 			   }}).load();
-		Dataset<Row> transactionsTable =  ProjectPropertie.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
+		Dataset<Row> transactionsTable =  ProjectProperties.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
 			   {
 			   put("keyspace", "space");
 			   put("table", "cc_transactions");
@@ -112,13 +104,13 @@ public class App {
 	}
 	
 	public static void suspiciousTransactions() {
-		Dataset<Row> transactionsTable =  ProjectPropertie.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
+		Dataset<Row> transactionsTable =  ProjectProperties.spark.read().format("org.apache.spark.sql.cassandra").options(new HashMap<String,String>() {
 			   {
 			   put("keyspace", "space");
 			   put("table", "cc_transactions");
 			   }}).load().withColumnRenamed("status", "transaction_status");
 		
-		Dataset<Row> lostCards = ProjectPropertie.spark.read()
+		Dataset<Row> lostCards = ProjectProperties.spark.read()
 				.csv("suspicious.csv")
 				.withColumnRenamed("_c0", "card_id")
 				.withColumnRenamed("_c1", "status_card")
